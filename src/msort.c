@@ -4,9 +4,10 @@
 #include <stdint.h>
 #include <time.h>
 #include <assert.h>
+#include "util.h"
 
 #define LEN 32767
-
+//Merge sort
 void array_merge(int array[], int begin, int end)
 {
     int mid = begin + (end - begin) / 2;
@@ -66,7 +67,7 @@ void array_msort(int array[], int n)
 {
     assert(n > 0);
     assert(array != NULL);
-    array_divide(array ,0 ,n-1);
+    array_divide(array, 0, n-1);
 }
 
 /************************************************************************/
@@ -150,21 +151,7 @@ void msort(void *base, size_t nmemb, size_t size,
     assert(nmemb > 0);
     assert(size > 0);
     assert(compar != NULL);
-    divide(base,0 ,nmemb - 1 ,size, compar);
-}
-
-int int_compar(const void *p1, const void *p2)
-{
-    return((*(int*)p1) - (*(int*)p2));
-}
-
-int char_compar(const void *p1, const void *p2)
-{
-    if (*(char*)p1 > *(char*)p2){
-        return 1;
-    }else if (*(char*)p1 < *(char*)p2){
-        return -1;
-    } else return 0;
+    divide(base, 0, nmemb - 1, size, compar);
 }
 
 int main(int argc, char **argv)

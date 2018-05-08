@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <assert.h>
+#include "util.h"
 
 #define LEN 32767
 //Insertion sort
@@ -16,11 +17,11 @@ void isort(void *base, size_t nmemb, size_t size,
     tmp = (char*)malloc(size);
     assert(tmp != NULL);
     char *crt, *next;
-    for(i=0; i<nmemb; i++){
-        for(j=i;j>0;j--){
-            crt = (char*)(b+(j*size));
-            next = (char*)(b+((j-1)*size));
-            if (compar(crt,next) >= 0)
+    for(i = 0; i < nmemb; i++){
+        for(j = i; j > 0; j--){
+            crt = (char*)(b + j * size);
+            next = (char*)(b + ((j - 1) * size));
+            if (compar(crt, next) >= 0)
                 break;
             else{
 //               void *memcpy(void *dest, const void *src, size_t n);
@@ -33,21 +34,16 @@ void isort(void *base, size_t nmemb, size_t size,
     free(tmp);
 }
 
-int memb_compare(const void *p1, const void *p2)
-{
-    return((*(int*)p1) - (*(int*)p2));
-}
-
 int main(int argc, char **argv)
 {
     clock_t start_t, end_t, total_t;
     int array[LEN];
     srand(time(NULL));   // should only be called once
-    for(size_t i=0;i<LEN;i++){
+    for(size_t i = 0; i < LEN; i++){
         array[i]=rand();
     }
     start_t = clock();
-    isort(array,LEN,sizeof(int),&memb_compare);
+    isort(array, LEN, sizeof(int), &int_compar);
     end_t = clock();
     total_t = end_t - start_t;
     printf("\nClocks taken by CPU: %d\n", (int)total_t);

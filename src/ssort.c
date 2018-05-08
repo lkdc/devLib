@@ -7,32 +7,35 @@
 #include "util.h"
 
 #define LEN 32767
-
-//Bubble sort
-void bbsort(void *base, size_t nmemb, size_t size,
+//Selection sort
+void isort(void *base, size_t nmemb, size_t size,
             int (*compar)(const void *, const void *))
 {
     size_t i,j;
-    int swapped;
     char *b = (char*)base;
+    char *ai;
+    char *aj;
+    char *min;
+
     char *tmp;
     tmp = (char*)malloc(size);
     assert(tmp != NULL);
-    char *crt, *next;
-    for(i = 0; i < nmemb - 1; i++){
-        swapped = 0;
-        for(j = 0; j < nmemb - i - 1; j++){
-            crt = (char*)(b + j * size);
-            next = crt + size;
-            if (compar(crt, next) >= 0){
-//               void *memcpy(void *dest, const void *src, size_t n);
-               memcpy(tmp, crt, size);
-               memcpy(crt, next, size);
-               memcpy(next, tmp, size);
-               swapped = 1;
-           }
+
+    for(i = 0; i < nmemb-1; i++){
+        ai = (char*)(b + (i * size));
+        min = ai;
+        for(j = i + 1; j < nmemb; j++){
+            aj = (char*)(b + (j * size));
+            if (compar(aj, min) < 0){
+                min = aj;
+            }
         }
-        if (!swapped) break;
+        if (compar(min, ai) < 0){
+//          void *memcpy(void *dest, const void *src, size_t n);
+            memcpy(tmp, min, size);
+            memcpy(min, ai, size);
+            memcpy(ai, tmp, size);
+        }
     }
     free(tmp);
 }
@@ -42,11 +45,11 @@ int main(int argc, char **argv)
     clock_t start_t, end_t, total_t;
     int array[LEN];
     srand(time(NULL));   // should only be called once
-    for(size_t i = 0; i < LEN; i++){
+    for(size_t i=0;i<LEN;i++){
         array[i]=rand();
     }
     start_t = clock();
-    bbsort(array, LEN, sizeof(int), &int_compar);
+    isort(array, LEN, sizeof(int), &int_compar);
     end_t = clock();
     total_t = end_t - start_t;
     printf("\nClocks taken by CPU: %d\n", (int)total_t);
