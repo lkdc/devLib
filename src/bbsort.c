@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <assert.h>
-#include "util.h"
+#include "compar.h"
 
 #define LEN 32767
 
