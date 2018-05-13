@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <assert.h>
-#include "compar.h"
+#include "dev.h"
 
 #define LEN 32767
 //Insertion sort
@@ -13,9 +13,6 @@ void isort(void *base, size_t nmemb, size_t size,
 {
     size_t i,j;
     char *b = (char*)base;
-    char *tmp;
-    tmp = (char*)malloc(size);
-    assert(tmp != NULL);
     char *crt, *next;
     for(i = 0; i < nmemb; i++){
         for(j = i; j > 0; j--){
@@ -24,14 +21,10 @@ void isort(void *base, size_t nmemb, size_t size,
             if (compar(crt, next) >= 0)
                 break;
             else{
-//               void *memcpy(void *dest, const void *src, size_t n);
-               memcpy(tmp, crt, size);
-               memcpy(crt, next, size);
-               memcpy(next, tmp, size);
+                swap(next, crt, size);
             }
         }
     }
-    free(tmp);
 }
 
 int main(int argc, char **argv)

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <assert.h>
-#include "util.h"
+#include "dev.h"
 
 #define LEN 32767
 //Merge sort

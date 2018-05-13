@@ -15,9 +15,6 @@ void bbsort(void *base, size_t nmemb, size_t size,
     size_t i,j;
     int swapped;
     char *b = (char*)base;
-    char *tmp;
-    tmp = (char*)malloc(size);
-    assert(tmp != NULL);
     char *crt, *next;
     for(i = 0; i < nmemb - 1; i++){
         swapped = 0;
@@ -25,16 +22,12 @@ void bbsort(void *base, size_t nmemb, size_t size,
             crt = (char*)(b + j * size);
             next = crt + size;
             if (compar(crt, next) >= 0){
-//               void *memcpy(void *dest, const void *src, size_t n);
-               memcpy(tmp, crt, size);
-               memcpy(crt, next, size);
-               memcpy(next, tmp, size);
-               swapped = 1;
-           }
+                swap(next, crt, size);
+                swapped = 1;
+            }
         }
         if (!swapped) break;
     }
-    free(tmp);
 }
 
 int main(int argc, char **argv)
