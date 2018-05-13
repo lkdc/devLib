@@ -99,6 +99,10 @@ void *pq_extract(pqueue_t *p)
         p->list[p->nnode] = NULL;
         pq_heapify(p, 0);
     }
+    if (p->capacity > p->nnode<<2){
+        p-> capacity >>=1;
+        p->list = realloc(p->list, p->capacity * sizeof(size_t));
+    }
     return v;
 }
 
