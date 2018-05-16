@@ -4,9 +4,19 @@
 #include <stdint.h>
 #include <time.h>
 #include <assert.h>
-#include "dev.h"
 
 #define LEN 32767
+
+int int_compar(const void *p1, const void *p2)
+{
+    if (*(int*)p1 > *(int*)p2)
+        return 1;
+    else if (*(int*)p1 < *(int*)p2)
+        return -1;
+    else
+        return 0;
+}
+
 //Merge sort
 void array_merge(int array[], int begin, int end)
 {
@@ -164,8 +174,6 @@ int main(int argc, char **argv)
     }
     start_t = clock();
     msort(array, LEN, sizeof(int), &int_compar);
-//    array_msort(array, LEN);
-//    qsort(array, LEN, sizeof(int), &int_compar);
     end_t = clock();
     total_t = end_t - start_t;
     printf("\nClocks taken by CPU: %d\n", (int)total_t);

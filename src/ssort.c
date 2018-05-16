@@ -4,9 +4,31 @@
 #include <stdint.h>
 #include <time.h>
 #include <assert.h>
-#include "dev.h"
 
 #define LEN 32767
+
+int int_compar(const void *p1, const void *p2)
+{
+    if (*(int*)p1 > *(int*)p2)
+        return 1;
+    else if (*(int*)p1 < *(int*)p2)
+        return -1;
+    else
+        return 0;
+}
+
+void swap(void *v1, void *v2, size_t size)
+{
+    void *v;
+    v = malloc(size);
+    assert(v != NULL);
+//  void *memcpy(void *dest, const void *src, size_t n);
+    memcpy(v, v1, size);
+    memcpy(v1, v2, size);
+    memcpy(v2, v, size);
+    free(v);
+}
+
 //Selection sort
 void isort(void *base, size_t nmemb, size_t size,
             int (*compar)(const void *, const void *))
