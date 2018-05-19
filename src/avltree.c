@@ -99,11 +99,6 @@ static inline void left_rotate(avl_node_t **link)
     *link = child;
 }
 
-static inline int balance(avl_node_t *node)
-{
-    return (height(node->left) - height(node->right));
-}
-
 static inline void new_node(avl_node_t **link, avl_node_t *parent, int data)
 {
     avl_node_t *node;
