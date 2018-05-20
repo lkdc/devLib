@@ -1,3 +1,5 @@
+// iterative AVL TREE with insert and delete
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,11 +28,14 @@ static inline void update_height(avl_node_t *node);
 static inline int balance(avl_node_t *node);
 static inline void right_rotate(avl_node_t **link);
 static inline void left_rotate(avl_node_t **link);
+static inline avl_node_t **link_leftmost(avl_node_t **node);
+static inline void balance_path(avl_node_t **root, avl_node_t *node);
 
 void insert_node(avl_node_t **root, int data);
-//void delete_node(avl_node_t **root, int data);
-avl_node_t *min_node(avl_node_t *root);
-avl_node_t *max_node(avl_node_t *root);
+void delete_node(avl_node_t **root, int data);
+
+avl_node_t *leftmost(avl_node_t *root);
+avl_node_t *rightmost(avl_node_t *root);
 avl_node_t *successor(avl_node_t *root, avl_node_t *node);
 avl_node_t *predecessor(avl_node_t *root, avl_node_t *node);
 avl_node_t *find(avl_node_t *root, int data);
@@ -55,7 +60,7 @@ static inline int height(avl_node_t *node)
 
 static inline void update_height(avl_node_t *node)
 {
-    if (node == NULL){
+    if (!node){
         return;
     }
     node->height = max(height(node->left), height(node->right)) + 1;
@@ -68,61 +73,59 @@ static inline int balance(avl_node_t *node)
 
 static inline void right_rotate(avl_node_t **link)
 {
-    avl_node_t *child = (*link)->left;
-    avl_node_t *g_child = child->right;
+    avl_node_t *p = (*link)->left;
 
-
-    child->parent = (*link)->parent;
-    (*link)->parent = child;
-    if (g_child){
-        g_child->parent = *link;
+    p->parent = (*link)->parent;
+    (*link)->parent = p;
+    if (p->right != NULL){
+        p->right->parent = *link;
     }
-    (*link)->left = child->right;
-    child->right = *link;
+    (*link)->left = p->right;
+    p->right = *link;
     update_height(*link);
-    *link = child;
+    *link = p;
 }
 
 static inline void left_rotate(avl_node_t **link)
 {
-    avl_node_t *child = (*link)->right;
-    avl_node_t *g_child = child->left;
+    avl_node_t *p = (*link)->right;
 
-    child->parent = (*link)->parent;
-    (*link)->parent = child;
-    if (g_child){
-        g_child->parent = *link;
+    p->parent = (*link)->parent;
+    (*link)->parent = p;
+    if (p->left != NULL){
+        p->left->parent = *link;
     }
-    (*link)->right = child->left;
-    child->left = *link;
+    (*link)->right = p->left;
+    p->left = *link;
     update_height(*link);
-    *link = child;
+    *link = p;
 }
 
-static inline void new_node(avl_node_t **link, avl_node_t *parent, int data)
+static inline avl_node_t **link_leftmost(avl_node_t **node)
 {
-    avl_node_t *node;
-    node = malloc(sizeof(avl_node_t));
-    node->data = data;
-    node->left = NULL;
-    node->right = NULL;
-    node->parent = parent;
-    *link = node;
+    if (!(*node)){
+        return NULL;
+    } else {
+        while((*node)->left != NULL){
+            node = &(*node)->left;
+        }
+    }
+    return node;
 }
 
 void insert_node(avl_node_t **root, int data)
 {
     avl_node_t **p = root;
-    avl_node_t *parent = NULL;
+    avl_node_t *last = NULL;
 
-    //--------find insertion point
+    //--------find insertion point--------//
 
     while (*p){
         if (data < (*p)->data){
-            parent = *p;
+            last = *p;
             p = &(*p)->left;
         } else if(data > (*p)->data){
-            parent = *p;
+            last = *p;
             p = &(*p)->right;
         } else {
             printf("Node already exist\n");
@@ -130,23 +133,91 @@ void insert_node(avl_node_t **root, int data)
         }
     }
 
-    //--------create a new node and link it
+    //--------create a new node and link it--------//
 
-    new_node(p, parent, data);
-    printf("Insert Node: %d\n", (*p)->data);
+    *p = malloc(sizeof(avl_node_t));
+    assert(*p);
+    (*p)->data = data;
+    (*p)->left = NULL;
+    (*p)->right = NULL;
+    (*p)->parent = last;
 
-    //---------balance the path from the node back to the root
+    //--------balance the path from the node back to the root--------//
 
-    avl_node_t *node = *p;
-    avl_node_t **link;
+    balance_path(root, last);
+
+}
+
+void delete_node(avl_node_t **root, int data)
+{
+    avl_node_t **p = root;
+
+    //--------find the node--------//
+
+    if(!p){
+        printf("Node not found\n");
+        return;
+    } else {
+        while (*p){
+            if (data < (*p)->data){
+                p = &(*p)->left;
+            } else if(data > (*p)->data){
+                p = &(*p)->right;
+            } else break;
+        }
+    }
+
+    avl_node_t **link = NULL;
+    avl_node_t *last = NULL;
+    avl_node_t *tmp = NULL;
+
+    //--------remove the links and free the node--------//
+
+    while (1){
+        if(!(*p)){
+            printf("Node not found\n");
+            return;
+        }
+        if (!(*p)->right){
+            if((*p)->left != NULL){
+                (*p)->left->parent = (*p)->parent;
+            }
+            last = (*p)->parent;
+            tmp = *p;
+            *p = (*p)->left;
+            free(tmp);
+            break;
+        } else {
+            link = link_leftmost(&(*p)->right);
+            (*p)->data = (*link)->data;
+            p = link;
+            last = (*p)->parent;
+            continue;
+        }
+    }
+
+    //--------balance the path from the removed node back to the root--------//
+
+    balance_path(root, last);
+
+}
+
+static inline void balance_path(avl_node_t **root, avl_node_t *node)
+{
+
+    avl_node_t **link = NULL;
+    avl_node_t *parent = NULL;
 
     while(1){
+        if (!node){
+            return;
+        }
         update_height(node);
-        printf("        Node, Balance: %d, (%d)\n", node->data, balance(node));
+//        printf("        Node, Balance: %d, (%d)\n", node->data, balance(node));
         if (balance(node) < -1){                    //if node is right heavy
             if (balance(node->right) > 0){          //if right child is left heavy
                 link = &node->right;                //node->child link
-                printf("    Right Rotate: %d\n", (*link)->data);
+//                printf("    Right Rotate: %d\n", (*link)->data);
                 right_rotate(link);                 //right rotate the right child
             }
             if (!node->parent){                     //parent->node link
@@ -158,14 +229,14 @@ void insert_node(avl_node_t **root, int data)
                 else
                     link = &parent->left;
             }
-            printf("    Left Rotate: %d\n", (*link)->data);
+//            printf("    Left Rotate: %d\n", (*link)->data);
             left_rotate(link);                      //left rotate the node
             continue;
 
         } else if (balance(node) > 1){              //if node is left heavy
             if (balance(node->left) < 0){           //if left child is right heavy
                 link = &node->left;                 //node->child link
-                printf("    Left Rotate: %d\n", (*link)->data);
+//                printf("    Left Rotate: %d\n", (*link)->data);
                 left_rotate(link);                  //left rotate the left child
             }
             if (!node->parent){                     //parent->node link
@@ -177,78 +248,36 @@ void insert_node(avl_node_t **root, int data)
                 else
                     link = &parent->right;
             }
-            printf("    Right Rotate: %d\n", (*link)->data);
+//            printf("    Right Rotate: %d\n", (*link)->data);
             right_rotate(link);                     //right rotate the node
             continue;
         }
         node = node->parent;
-        if (!node) break;
     }
 }
 
-/*
-void delete_node(avl_node_t **root, int data)
+avl_node_t *leftmost(avl_node_t *node)
 {
-    avl_node_t **p = root;
-    avl_node_t *p_free = NULL;
-    avl_node_t *p_min = NULL;
-
-    if(!p){
-        return;
-    } else {
-        while (*p != NULL){
-            if (data < (*p)->data){
-                p = &(*p)->left;
-            } else if(data > (*p)->data){
-                p = &(*p)->right;
-            } else break;
-        }
-    }
-    if(!(*p)){
-        printf("Node not found\n");
-        return;
-    }
-    if ((*p)->right == NULL){
-        p_free = *p;
-        *p = (*p)->left;
-        free(p_free);
-    } else{
-        p_min = min_node((*p)->right);
-        (*p)->data = p_min->data;
-        delete_node(&(*p)->right, p_min->data);
-    }
-}
-
-*/
-
-avl_node_t *min_node(avl_node_t *root)
-{
-    avl_node_t *p;
-    p = root;
-
-    if (!p){
+    if (!node){
         return NULL;
     } else {
-        while(p->left != NULL){
-            p = p->left;
+        while(node->left != NULL){
+            node = node->left;
         }
     }
-    return p;
+    return node;
 }
 
-avl_node_t *max_node(avl_node_t *root)
+avl_node_t *rightmost(avl_node_t *node)
 {
-    avl_node_t *p;
-    p = root;
-
-    if (!p){
+    if (!node){
         return NULL;
     } else {
-        while(p->right != NULL){
-            p = p->right;
+        while(node->right != NULL){
+            node = node->right;
         }
     }
-    return p;
+    return node;
 }
 
 avl_node_t *successor(avl_node_t *root, avl_node_t *node)
@@ -259,7 +288,7 @@ avl_node_t *successor(avl_node_t *root, avl_node_t *node)
         return NULL;
 
     if(node->right != NULL)
-        return min_node(node->right);
+        return leftmost(node->right);
 
     while (root != NULL){
         if (node->data < root->data){
@@ -280,7 +309,7 @@ avl_node_t *predecessor(avl_node_t *root, avl_node_t *node)
         return NULL;
 
     if(node->left != NULL)
-        return max_node(node->left);
+        return rightmost(node->left);
 
     while (root != NULL){
         if (node->data > root->data){
@@ -316,8 +345,8 @@ void inorder(avl_node_t *root)
         return;
     } else {
         inorder(root->left);
-        printf("%d ", root->data);
-        printf("(%d), ", root->height);
+        printf("%d:", root->data);
+        printf("(%d)  ", root->height);
         inorder(root->right);
     }
 }
@@ -327,7 +356,8 @@ void preorder(avl_node_t *root)
     if (root == NULL){
         return;
     } else {
-        printf("%d ", root->data);
+        printf("%d:", root->data);
+        printf("(%d)  ", root->height);
         preorder(root->left);
         preorder(root->right);
     }
@@ -340,15 +370,16 @@ void postorder(avl_node_t *root)
     } else {
         postorder(root->left);
         postorder(root->right);
-        printf("%d ", root->data);
+        printf("%d:", root->data);
+        printf("(%d)  ", root->height);
     }
 }
 
 void path(avl_node_t *node)
 {
     while(node != NULL){
-        printf("%d ", node->data);
-        printf("(%d), ", node->height);
+        printf("%d:", node->data);
+        printf("(%d)  ", node->height);
         node = node->parent;
     }
     printf("\n");
@@ -361,16 +392,17 @@ int main(int argc, char **argv)
     avl_node_t *f;
     srand(time(NULL));
 
-    int a[100] = {10, 15, 12, 6, 13, 14, 18, 19, 20};
+    int a[16] = {12,9,18,6,10,16,22,4,7,11,13,17,20,26,19,15};
 
-    for(int i = 0; i<9; i++){
+    for(int i = 0; i<16; i++){
         insert_node(&root, a[i]);
     }
 
-    for(int i = -1000; i<1000; i++){
-        f = find_node(root, i);
-        if (f)
-            path(f);
+    delete_node(&root, 17);
+
+    for(int i=0; i<10000; i++){
+        f = find_node(root,i);
+        if(f) path(f);
     }
 
     return 0;
